@@ -12,7 +12,6 @@ import AdminForm from "./pages/adminform";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
-import Orders from "./pages/orders"; // <-- Add this
 import "./App.css"; // Import CSS
 
 function App() {
@@ -33,8 +32,7 @@ function App() {
           <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedAdminRoute><Admin /></ProtectedAdminRoute>} />
           <Route path="/admin-form" element={<AdminForm />} />
-          <Route path="/user/orders" element={<Orders />} />
-          <Route path="/review/:productId" element={<Review />} />
+          {/* removed unused orders route and duplicate review/product route */}
 
         </Routes>
       </div>

@@ -8,10 +8,10 @@ export default function Admin() {
   const navigate = useNavigate();
   const admin = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const [customers, setCustomers] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [orders, setOrders] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [movies, setMovies] = useState([]);
+  const [genres, setGenres] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState("");
 
@@ -28,51 +28,50 @@ export default function Admin() {
   const fetchAll = async () => {
     setLoading(true);
     await Promise.all([
-      fetchCustomers(),
-      fetchProducts(),
-      fetchCategories(),
-      fetchOrders(),
+      fetchUsers(),
+      fetchMovies(),
+      fetchGenres(),
+      fetchBookings(),
     ]);
     setLoading(false);
   };
 
-  const fetchCustomers = async () => {
+  const fetchUsers = async () => {
     try {
       const res = await fetch(
-        `${API}/customers?admin_email=${admin.email}&admin_password=${admin.password}`
+        `${API}/users?admin_email=${admin.email}&admin_password=${admin.password}`
       );
       const data = await res.json();
-      setCustomers(data);
+      setUsers(data);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const fetchProducts = async () => {
+  const fetchMovies = async () => {
     try {
-      const res = await fetch(`${API}/products`);
+      const res = await fetch(`${API}/movies`);
       const data = await res.json();
-      setProducts(data);
+      setMovies(data);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const fetchCategories = async () => {
+  const fetchGenres = async () => {
     try {
-      const res = await fetch(`${API}/categories`);
+      const res = await fetch(`${API}/genres`);
       const data = await res.json();
-      setCategories(data);
+      setGenres(data);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const fetchOrders = async () => {
+  const fetchBookings = async () => {
     try {
-      const res = await fetch(`${API}/orders`);
-      const data = await res.json();
-      setOrders(data);
+      // Minimal placeholder: list of bookings not implemented in backend yet
+      setBookings([]);
     } catch (err) {
       console.error(err);
     }
@@ -105,9 +104,9 @@ export default function Admin() {
       <h2>Admin Dashboard</h2>
       {statusMessage && <div className="status-message">{statusMessage}</div>}
 
-      {/* Customers */}
+      {/* Users */}
       <h3>
-        Customers
+        Users
         <button
           className="action-btn update-btn"
           style={{ marginLeft: 10 }}
@@ -118,8 +117,8 @@ export default function Admin() {
           Add New
         </button>
       </h3>
-      {customers.length === 0 ? (
-        <div>No customers found.</div>
+      {users.length === 0 ? (
+        <div>No users found.</div>
       ) : (
         <table className="table">
           <thead>
@@ -132,18 +131,18 @@ export default function Admin() {
             </tr>
           </thead>
           <tbody>
-            {customers.map((c) => (
-              <tr key={c.customer_id}>
-                <td>{c.customer_id}</td>
-                <td>{c.name}</td>
-                <td>{c.email}</td>
-                <td>{c.is_admin ? "Yes" : "No"}</td>
+            {users.map((u) => (
+              <tr key={u.user_id}>
+                <td>{u.user_id}</td>
+                <td>{u.name}</td>
+                <td>{u.email}</td>
+                <td>{u.is_admin ? "Yes" : "No"}</td>
                 <td>
                   <button
                     className="action-btn update-btn"
                     onClick={() =>
                       navigate("/admin-form", {
-                        state: { type: "customer", data: c },
+                        state: { type: "customer", data: u },
                       })
                     }
                   >
@@ -153,9 +152,9 @@ export default function Admin() {
                     className="action-btn delete-btn"
                     onClick={() =>
                       handleDelete(
-                        `${API}/customers/${c.customer_id}`,
-                        fetchCustomers,
-                        "Customer deleted successfully"
+                        `${API}/users/${u.user_id}`,
+                        fetchUsers,
+                        "User deleted successfully"
                       )
                     }
                   >
@@ -168,9 +167,9 @@ export default function Admin() {
         </table>
       )}
 
-      {/* Products */}
+      {/* Movies */}
       <h3>
-        Products
+        Movies
         <button
           className="action-btn update-btn"
           style={{ marginLeft: 10 }}
@@ -181,67 +180,38 @@ export default function Admin() {
           Add New
         </button>
       </h3>
-      {products.length === 0 ? (
-        <div>No products found.</div>
+      {movies.length === 0 ? (
+        <div>No movies found.</div>
       ) : (
         <table className="table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Name</th>
-              <th>Category</th>
+              <th>Title</th>
+              <th>Genre</th>
               <th>Price</th>
-              <th>Stock</th>
+              <th>Seats</th>
               <th>Actions</th>
-              <th>Reviews</th> {/* New column */}
             </tr>
           </thead>
           <tbody>
-            {products.map((p) => (
-              <tr key={p.product_id}>
-                <td>{p.product_id}</td>
-                <td>{p.name}</td>
-                <td>{p.category || "-"}</td>
-                <td>₹{p.price}</td>
-                <td>{p.stock}</td>
+            {movies.map((m) => (
+              <tr key={m.movie_id}>
+                <td>{m.movie_id}</td>
+                <td>{m.title}</td>
+                <td>{m.genre || "-"}</td>
+                <td>₹{m.price}</td>
+                <td>{m.available_seats}</td>
                 <td>
                   <button
                     className="action-btn update-btn"
                     onClick={() =>
                       navigate("/admin-form", {
-                        state: { type: "product", data: p },
+                        state: { type: "product", data: m },
                       })
                     }
                   >
                     Update
-                  </button>
-                  <button
-                    className="action-btn delete-btn"
-                    onClick={() =>
-                      handleDelete(
-                        `${API}/products/${p.product_id}`,
-                        fetchProducts,
-                        "Product deleted successfully"
-                      )
-                    }
-                  >
-                    Delete
-                  </button>
-                </td>
-                <td>
-                  <button
-                    className="action-btn review-btn"
-                    onClick={() =>
-                      navigate("/admin-form", {
-                        state: {
-                          type: "reviews",
-                          productId: p.product_id,
-                          data: p,
-                        },
-                      })
-                    }
-                  >
-                    View Reviews
                   </button>
                 </td>
               </tr>
@@ -250,90 +220,46 @@ export default function Admin() {
         </table>
       )}
 
-      {/* Categories */}
+      {/* Genres */}
       <h3>
-        Categories
-        <button
-          className="action-btn update-btn"
-          style={{ marginLeft: 10 }}
-          onClick={() =>
-            navigate("/admin-form", { state: { type: "category" } })
-          }
-        >
-          Add New
-        </button>
+        Genres
       </h3>
-      {categories.length === 0 ? (
-        <div>No categories found.</div>
+      {genres.length === 0 ? (
+        <div>No genres found.</div>
       ) : (
         <table className="table">
           <thead>
             <tr>
               <th>ID</th>
               <th>Name</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {categories.map((c) => (
-              <tr key={c.category_id}>
-                <td>{c.category_id}</td>
-                <td>{c.name}</td>
-                <td>
-                  <button
-                    className="action-btn update-btn"
-                    onClick={() =>
-                      navigate("/admin-form", {
-                        state: { type: "category", data: c },
-                      })
-                    }
-                  >
-                    Update
-                  </button>
-                  <button
-                    className="action-btn delete-btn"
-                    onClick={() =>
-                      handleDelete(
-                        `${API}/categories/${c.category_id}`,
-                        fetchCategories,
-                        "Category deleted successfully"
-                      )
-                    }
-                  >
-                    Delete
-                  </button>
-                </td>
+            {genres.map((g) => (
+              <tr key={g.genre_id}>
+                <td>{g.genre_id}</td>
+                <td>{g.name}</td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
 
-      {/* Orders */}
-      <h3>Orders</h3>
-      {orders.length === 0 ? (
-        <div>No orders found.</div>
+      {/* Bookings (summary placeholder) */}
+      <h3>Bookings</h3>
+      {bookings.length === 0 ? (
+        <div>No bookings found.</div>
       ) : (
         <div className="orders-grid">
-          {orders.map((o) => (
-            <div key={o.order_id} className="order-card">
-              <h4>Order ID: {o.order_id}</h4>
+          {bookings.map((b) => (
+            <div key={b.booking_id} className="order-card">
+              <h4>Booking ID: {b.booking_id}</h4>
               <p>
-                <strong>Customer ID:</strong> {o.customer_id}
+                <strong>User ID:</strong> {b.user_id}
               </p>
               <p>
-                <p>
-                  <strong>Date:</strong> {o.date_created}
-                </p>
+                <strong>Date:</strong> {b.booking_date}
               </p>
-              <h5>Items:</h5>
-              <ul>
-                {o.items.map((it) => (
-                  <li key={it.order_item_id}>
-                    {it.name} – Qty: {it.quantity} – ₹{it.price}
-                  </li>
-                ))}
-              </ul>
             </div>
           ))}
         </div>

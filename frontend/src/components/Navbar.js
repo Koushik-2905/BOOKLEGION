@@ -17,7 +17,6 @@ export default function Navbar() {
       <div className="navbar-left">
         {user && !user.is_admin && <Link to="/home" className="nav-link">Home</Link>}
         {user && !user.is_admin && <Link to="/cart" className="nav-link">Cart</Link>}
-        {user && !user.is_admin && <Link to="/user/orders" className="nav-link">Orders</Link>}
         {user && user.is_admin && <Link to="/admin" className="nav-link">Admin</Link>}
       </div>
       <div className="navbar-right">

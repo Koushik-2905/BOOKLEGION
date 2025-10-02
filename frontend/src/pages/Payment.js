@@ -54,9 +54,9 @@ export default function Payment() {
       if (data.success) {
         setStatusMessage("Payment successful! Redirecting to review...");
 
-        // Delete cart items **after successful payment**
+        // Delete watchlist items after successful payment
         for (const item of cartItems) {
-          await fetch(`${API}/cart/${item.cart_id}`, { method: "DELETE" });
+          await fetch(`${API}/watchlist/${item.cart_id}`, { method: "DELETE" });
         }
 
         // Navigate to Review page and pass cart items for product ID

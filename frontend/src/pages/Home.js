@@ -4,53 +4,53 @@ import "../App.css"; // Import CSS
 const API = "http://localhost:5000";
 
 export default function Home() {
-  const [products, setProducts] = useState([]);
-  const [cats, setCats] = useState([]);
+  const [movies, setMovies] = useState([]);
+  const [genres, setGenres] = useState([]);
   const [filter, setFilter] = useState("");
   const [message, setMessage] = useState(null); // <-- New state for messages
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
   useEffect(() => {
-    fetchProducts();
-    fetchCats();
+    fetchMovies();
+    fetchGenres();
   }, []);
 
-  const fetchProducts = async (category_id) => {
+  const fetchMovies = async (genre_id) => {
     try {
-      let url = API + "/products";
-      if (category_id) url += "?category_id=" + category_id;
+      let url = API + "/movies";
+      if (genre_id) url += "?genre_id=" + genre_id;
       const res = await fetch(url);
       const data = await res.json();
-      setProducts(data);
+      setMovies(data);
     } catch (err) {
-      console.error("Failed to fetch products:", err);
-      setMessage({ type: "error", text: "Failed to fetch products. Check backend." });
+      console.error("Failed to fetch movies:", err);
+      setMessage({ type: "error", text: "Failed to fetch movies. Check backend." });
     }
   };
 
-  const fetchCats = async () => {
+  const fetchGenres = async () => {
     try {
-      const res = await fetch(API + "/categories");
+      const res = await fetch(API + "/genres");
       const data = await res.json();
-      setCats(data);
+      setGenres(data);
     } catch (err) {
-      console.error("Failed to fetch categories:", err);
-      setMessage({ type: "error", text: "Failed to fetch categories. Check backend." });
+      console.error("Failed to fetch genres:", err);
+      setMessage({ type: "error", text: "Failed to fetch genres. Check backend." });
     }
   };
 
-  const addToCart = async (product_id) => {
+  const addToCart = async (movie_id) => {
     if (!user) { 
       setMessage({ type: "error", text: "Please login first" });
       return; 
     }
     try {
-      const res = await fetch(API + "/cart/", {  
+      const res = await fetch(API + "/watchlist/", {  
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           customer_id: user.customer_id, 
-          product_id, 
+          product_id: movie_id, 
           quantity: 1 
         }),
       });
@@ -71,7 +71,7 @@ export default function Home() {
 
   return (
     <div className="container">
-      <h2>Products</h2>
+      <h2>Movies</h2>
 
       {/* Message Box */}
       {message && (
@@ -81,26 +81,26 @@ export default function Home() {
       )}
 
       <div className="form-group">
-        <label htmlFor="categoryFilter">Filter by Category:</label>
+        <label htmlFor="categoryFilter">Filter by Genre:</label>
         <select
           id="categoryFilter"
           className="form-control"
           value={filter}
           onChange={e => { 
             setFilter(e.target.value); 
-            fetchProducts(e.target.value); 
+            fetchMovies(e.target.value); 
           }}
         >
-          <option value="">All Categories</option>
-          {cats.map(c => (
-            <option key={c.category_id} value={c.category_id}>{c.name}</option>
+          <option value="">All Genres</option>
+          {genres.map(g => (
+            <option key={g.genre_id} value={g.genre_id}>{g.name}</option>
           ))}
         </select>
       </div>
 
       <div className="cards-grid">
-        {products.map(p => (
-          <ProductCard key={p.product_id} p={p} onAdd={addToCart} />
+        {movies.map(p => (
+          <ProductCard key={p.movie_id} p={p} onAdd={addToCart} />
         ))}
       </div>
     </div>

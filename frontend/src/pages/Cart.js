@@ -18,13 +18,13 @@ export default function Cart() {
   }, []);
 
   const fetchCart = async () => {
-    const res = await fetch(API + "/cart/" + user.customer_id);
+    const res = await fetch(API + "/watchlist/" + user.customer_id);
     const data = await res.json();
     setItems(data);
   };
 
   const remove = async (cart_id) => {
-    const res = await fetch(API + "/cart/" + cart_id, { method: "DELETE" });
+    const res = await fetch(API + "/watchlist/" + cart_id, { method: "DELETE" });
     const data = await res.json();
     if (data.success) fetchCart();
     else alert(data.message || "Error");
@@ -38,7 +38,7 @@ export default function Cart() {
 
     const total = items.reduce((s, it) => s + it.price * it.quantity, 0);
 
-    const res = await fetch(API + "/orders", {
+    const res = await fetch(API + "/bookings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ customer_id: user.customer_id }),
@@ -56,7 +56,7 @@ export default function Cart() {
 
   return (
     <div className="container page-container">
-      <h2>Your Cart</h2>
+      <h2>Your Watchlist</h2>
 
       {items.length === 0 && <div>Cart is empty</div>}
 
