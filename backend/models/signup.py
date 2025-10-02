@@ -1,11 +1,12 @@
 from flask import Blueprint, request, jsonify
 from db import get_db
 
-signup_bp = Blueprint("signup", __name__)
+signup_bp = Blueprint('signup', __name__)
+
 
 @signup_bp.route('/signup', methods=['POST'])
 def signup():
-    data = request.get_json()
+    data = request.get_json() or {}
     name = data.get('name')
     email = data.get('email')
     password = data.get('password')
@@ -16,12 +17,12 @@ def signup():
     conn = get_db()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT customer_id FROM customers WHERE email=%s", (email,))
+        cursor.execute("SELECT user_id FROM users WHERE email=%s", (email,))
         if cursor.fetchone():
             return jsonify({"success": False, "message": "Email already registered"}), 400
 
         cursor.execute(
-            "INSERT INTO customers (name,email,password) VALUES (%s,%s,%s)",
+            "INSERT INTO users (name,email,password) VALUES (%s,%s,%s)",
             (name, email, password)
         )
         conn.commit()
@@ -32,4 +33,5 @@ def signup():
     finally:
         cursor.close()
         conn.close()
-        conn.close()
+
+

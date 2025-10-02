@@ -1,86 +1,53 @@
 from flask import Blueprint, request, jsonify
 from db import get_db
 
-customers_bp = Blueprint('customers', __name__)
+users_bp = Blueprint('users', __name__)
+
 
 def dict_from_cursor(cursor):
     cols = [c[0] for c in cursor.description]
     rows = cursor.fetchall()
     return [dict(zip(cols, r)) for r in rows]
 
-@customers_bp.route('/signup', methods=['POST'])
-def signup():
-    data = request.get_json()
-    name = data.get('name')
-    email = data.get('email')
-    password = data.get('password')
 
-    if not (name and email and password):
-        return jsonify({"success": False, "message": "Name, email and password required"}), 400
-
-    conn = get_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT customer_id FROM customers WHERE email=%s", (email,))
-        if cursor.fetchone():
-            return jsonify({"success": False, "message": "Email already registered"}), 400
-
-        cursor.execute(
-            "INSERT INTO customers (name,email,password) VALUES (%s,%s,%s)",
-            (name, email, password)
-        )
-        conn.commit()
-        return jsonify({"success": True, "message": "Signup successful"})
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"success": False, "message": str(e)}), 500
-    finally:
-        cursor.close()
-        conn.close()
-
-@customers_bp.route('', methods=['POST'])
-def add_customer():
+@users_bp.route('', methods=['POST'])
+def add_user():
     data = request.get_json()
     admin_email = data.get("admin_email")
     admin_password = data.get("admin_password")
 
-    # Check admin credentials
     if not (admin_email and admin_password):
         return jsonify({"success": False, "message": "Admin credentials required"}), 401
 
     conn = get_db()
     cursor = conn.cursor()
     try:
-        # Verify admin
         cursor.execute(
-            "SELECT is_admin FROM customers WHERE email=%s AND password=%s",
+            "SELECT is_admin FROM users WHERE email=%s AND password=%s",
             (admin_email, admin_password)
         )
         row = cursor.fetchone()
         if not row or row[0] != 1:
             return jsonify({"success": False, "message": "Not authorized"}), 403
 
-        # Validate input
         name = data.get("name")
         email = data.get("email")
         password = data.get("password")
-        is_admin = data.get("is_admin", 0)  # Default to 0 if not provided
+        is_admin = data.get("is_admin", 0)
 
         if not (name and email and password):
             return jsonify({"success": False, "message": "Name, email, and password are required"}), 400
 
-        # Check if email already exists
-        cursor.execute("SELECT customer_id FROM customers WHERE email=%s", (email,))
+        cursor.execute("SELECT user_id FROM users WHERE email=%s", (email,))
         if cursor.fetchone():
             return jsonify({"success": False, "message": "Email already registered"}), 400
 
-        # Insert customer
         cursor.execute(
-            "INSERT INTO customers (name, email, password, is_admin) VALUES (%s, %s, %s, %s)",
+            "INSERT INTO users (name, email, password, is_admin) VALUES (%s, %s, %s, %s)",
             (name, email, password, is_admin)
         )
         conn.commit()
-        return jsonify({"success": True, "message": "Customer added successfully"})
+        return jsonify({"success": True, "message": "User added successfully"})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
@@ -89,33 +56,8 @@ def add_customer():
         conn.close()
 
 
-@customers_bp.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    if not (email and password):
-        return jsonify({"success": False, "message": "Email and password required"}), 400
-
-    conn = get_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "SELECT customer_id, name, is_admin FROM customers WHERE email=%s AND password=%s",
-            (email, password)
-        )
-        row = cursor.fetchone()
-        if row:
-            customer_id, name, is_admin = row
-            return jsonify({"success": True, "customer_id": customer_id, "name": name, "is_admin": bool(is_admin)})
-        else:
-            return jsonify({"success": False, "message": "Invalid credentials"}), 401
-    finally:
-        cursor.close()
-        conn.close()
-
-@customers_bp.route('/', methods=['GET'])
-def get_customers():
+@users_bp.route('/', methods=['GET'])
+def get_users():
     admin_email = request.args.get('admin_email')
     admin_password = request.args.get('admin_password')
     if not (admin_email and admin_password):
@@ -124,20 +66,21 @@ def get_customers():
     conn = get_db()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT is_admin FROM customers WHERE email=%s AND password=%s", (admin_email, admin_password))
+        cursor.execute("SELECT is_admin FROM users WHERE email=%s AND password=%s", (admin_email, admin_password))
         r = cursor.fetchone()
         if not r or r[0] != 1:
             return jsonify({"success": False, "message": "Not authorized"}), 403
 
-        cursor.execute("SELECT customer_id, name, email, is_admin FROM customers")
+        cursor.execute("SELECT user_id, name, email, is_admin FROM users")
         data = dict_from_cursor(cursor)
         return jsonify(data)
     finally:
         cursor.close()
         conn.close()
 
-@customers_bp.route('/<int:customer_id>', methods=['DELETE'])
-def delete_category(customer_id):
+
+@users_bp.route('/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
     admin_email = request.args.get("admin_email")
     admin_password = request.args.get("admin_password")
     if not (admin_email and admin_password):
@@ -147,19 +90,19 @@ def delete_category(customer_id):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "SELECT is_admin FROM customers WHERE email=%s AND password=%s",
+            "SELECT is_admin FROM users WHERE email=%s AND password=%s",
             (admin_email, admin_password)
         )
         row = cursor.fetchone()
         if not row or row[0] != 1:
             return jsonify({"success": False, "message": "Not authorized"}), 403
 
-        cursor.execute("DELETE FROM customers WHERE customer_id=%s", (customer_id,))
+        cursor.execute("DELETE FROM users WHERE user_id=%s", (user_id,))
         if cursor.rowcount == 0:
-            return jsonify({"success": False, "message": "customer not found"}), 404
+            return jsonify({"success": False, "message": "User not found"}), 404
 
         conn.commit()
-        return jsonify({"success": True, "message": "customer deleted"})
+        return jsonify({"success": True, "message": "User deleted"})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
@@ -168,8 +111,8 @@ def delete_category(customer_id):
         conn.close()
 
 
-@customers_bp.route('/<int:customer_id>', methods=['PUT'])
-def update_customer(customer_id):
+@users_bp.route('/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
     data = request.get_json()
     admin_email = data.get("admin_email")
     admin_password = data.get("admin_password")
@@ -188,19 +131,17 @@ def update_customer(customer_id):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "SELECT is_admin FROM customers WHERE email=%s AND password=%s",
+            "SELECT is_admin FROM users WHERE email=%s AND password=%s",
             (admin_email, admin_password)
         )
         row = cursor.fetchone()
         if not row or row[0] != 1:
             return jsonify({"success": False, "message": "Not authorized"}), 403
 
-        # Check if customer exists
-        cursor.execute("SELECT customer_id FROM customers WHERE customer_id=%s", (customer_id,))
+        cursor.execute("SELECT user_id FROM users WHERE user_id=%s", (user_id,))
         if not cursor.fetchone():
-            return jsonify({"success": False, "message": "Customer not found"}), 404
+            return jsonify({"success": False, "message": "User not found"}), 404
 
-        # Build update query dynamically
         updates = []
         values = []
         if name:
@@ -216,11 +157,11 @@ def update_customer(customer_id):
             updates.append("is_admin=%s")
             values.append(is_admin)
 
-        values.append(customer_id)
-        query = f"UPDATE customers SET {', '.join(updates)} WHERE customer_id=%s"
+        values.append(user_id)
+        query = f"UPDATE users SET {', '.join(updates)} WHERE user_id=%s"
         cursor.execute(query, values)
         conn.commit()
-        return jsonify({"success": True, "message": "Customer updated"})
+        return jsonify({"success": True, "message": "User updated"})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500

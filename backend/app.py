@@ -1,14 +1,10 @@
 from flask import Flask
-from flask_cors import CORS # type: ignore
+from flask_cors import CORS
 
-# Auth routes inside models/
-from models.signup import signup_bp
-from models.login import login_bp
-
-# Other CRUD routes
+# Import all blueprints
 from models import (
-    customers_bp, products_bp, cart_bp, orders_bp,
-    payments_bp, reviews_bp, categories_bp
+    users_bp, movies_bp, watchlist_bp, bookings_bp,
+    payments_bp, reviews_bp, genres_bp, signup_bp, login_bp
 )
 
 app = Flask(__name__)
@@ -16,14 +12,14 @@ CORS(app)
 
 # Register blueprints
 app.register_blueprint(signup_bp)
-app.register_blueprint(login_bp,url_prefix="/auth")
-app.register_blueprint(customers_bp, url_prefix='/customers')
-app.register_blueprint(products_bp, url_prefix='/products')
-app.register_blueprint(cart_bp, url_prefix='/cart')
-app.register_blueprint(orders_bp, url_prefix='/orders')
+app.register_blueprint(login_bp, url_prefix="/auth")
+app.register_blueprint(users_bp, url_prefix='/users')
+app.register_blueprint(movies_bp, url_prefix='/movies')
+app.register_blueprint(watchlist_bp, url_prefix='/watchlist')
+app.register_blueprint(bookings_bp, url_prefix='/bookings')
 app.register_blueprint(payments_bp, url_prefix='/payments')
 app.register_blueprint(reviews_bp, url_prefix='/reviews')
-app.register_blueprint(categories_bp, url_prefix='/categories')
+app.register_blueprint(genres_bp, url_prefix='/genres')
 
 if __name__ == '__main__':
     app.run(debug=True)
