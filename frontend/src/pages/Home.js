@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ProductCard from "../components/ProductCard";
-import "../App.css";
-
-const API = "http://localhost:5000";
+import { api } from "../api/api";
 
 export default function Home() {
   const [movies, setMovies] = useState([]);
@@ -18,45 +16,29 @@ export default function Home() {
 
   const fetchMovies = async (genre_id) => {
     try {
-      let url = API + "/movies";
-      if (genre_id) url += "?genre_id=" + genre_id;
-      const res = await fetch(url);
-      const data = await res.json();
+      const data = await api.getMovies({ genre_id });
       setMovies(data);
     } catch (err) {
-      console.error("Failed to fetch movies:", err);
-      setMessage({ type: "error", text: "Failed to fetch movies. Check backend." });
+      setMessage({ type: "error", text: "Failed to fetch movies." });
     }
   };
 
   const fetchGenres = async () => {
     try {
-      const res = await fetch(API + "/genres");
-      const data = await res.json();
+      const data = await api.getGenres();
       setGenres(data);
     } catch (err) {
-      console.error("Failed to fetch genres:", err);
-      setMessage({ type: "error", text: "Failed to fetch genres. Check backend." });
+      setMessage({ type: "error", text: "Failed to fetch genres." });
     }
   };
 
   const addToCart = async (movie_id) => {
-    if (!user) {
-      setMessage({ type: "error", text: "Please login first" });
-      return;
-    }
+    if (!user) { setMessage({ type: "error", text: "Please login first" }); return; }
     try {
-      const res = await fetch(API + "/watchlist/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customer_id: user.customer_id, product_id: movie_id, quantity: 1 }),
-      });
-      const data = await res.json();
-      if (data.success) setMessage({ type: "success", text: "Added to watchlist" });
-      else setMessage({ type: "error", text: data.message || "Error adding to watchlist" });
-    } catch (err) {
-      console.error("Add to watchlist error:", err);
-      setMessage({ type: "error", text: "Failed to fetch. Check backend or network." });
+      const res = await api.addToWatchlist({ user_id: user.customer_id, movie_id, seats_selected: 1 });
+      setMessage(res.success ? { type: "success", text: "Added to watchlist" } : { type: "error", text: res.message || "Error adding" });
+    } catch (e) {
+      setMessage({ type: "error", text: e.message || "Failed" });
     }
     setTimeout(() => setMessage(null), 3000);
   };
@@ -75,8 +57,10 @@ export default function Home() {
       </div>
 
       <div className="cards-grid">
-        {movies.map(p => (<ProductCard key={p.movie_id} p={p} onAdd={addToCart} />))}
+        {movies.map(m => (<ProductCard key={m.movie_id} p={m} onAdd={addToCart} />))}
       </div>
     </div>
   );
 }
+
+

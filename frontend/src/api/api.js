@@ -1,59 +1,64 @@
-import axios from 'axios';
+import { endpoints } from "../constants/apiEndpoints";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+async function handleResponse(response) {
+  const contentType = response.headers.get("content-type") || "";
+  const isJson = contentType.includes("application/json");
+  const data = isJson ? await response.json() : null;
+  if (!response.ok) {
+    const message = (data && (data.message || data.error)) || `HTTP ${response.status}`;
+    throw new Error(message);
+  }
+  return data;
+}
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
+export const api = {
+  login: async ({ email, password }) => handleResponse(await fetch(endpoints.auth.login, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) })),
+  signup: async ({ name, email, password }) => handleResponse(await fetch(endpoints.auth.signup, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email, password }) })),
+  getMovies: async ({ genre_id } = {}) => {
+    const url = new URL(endpoints.movies.list);
+    if (genre_id) url.searchParams.set("genre_id", genre_id);
+    return handleResponse(await fetch(url.toString()));
   },
-});
-
-// Auth APIs
-export const signup = (userData) => api.post('/signup', userData);
-export const login = (credentials) => api.post('/auth/login', credentials);
-
-// Movie APIs
-export const getMovies = (genreId = null) => {
-  const url = genreId ? `/movies/?genre_id=${genreId}` : '/movies/';
-  return api.get(url);
-};
-export const addMovie = (movieData) => api.post('/movies', movieData);
-export const updateMovie = (movieId, movieData) => api.put(`/movies/${movieId}`, movieData);
-export const deleteMovie = (movieId, adminEmail, adminPassword) => {
-  return api.delete(`/movies/${movieId}?admin_email=${adminEmail}&admin_password=${adminPassword}`);
-};
-
-// Genre APIs
-export const getGenres = () => api.get('/genres/');
-export const addGenre = (genreData) => api.post('/genres', genreData);
-export const updateGenre = (genreId, genreData) => api.put(`/genres/${genreId}`, genreData);
-export const deleteGenre = (genreId, adminEmail, adminPassword) => {
-  return api.delete(`/genres/${genreId}?admin_email=${adminEmail}&admin_password=${adminPassword}`);
-};
-
-// Watchlist APIs
-export const getWatchlist = (userId) => api.get(`/watchlist/${userId}`);
-export const addToWatchlist = (watchlistData) => api.post('/watchlist/', watchlistData);
-export const removeFromWatchlist = (watchlistId) => api.delete(`/watchlist/${watchlistId}`);
-
-// Booking APIs
-export const createBooking = (bookingData) => api.post('/bookings', bookingData);
-
-// Payment APIs
-export const addPayment = (paymentData) => api.post('/payments', paymentData);
-
-// Review APIs
-export const getReviews = (movieId) => api.get(`/reviews/${movieId}`);
-
-// User Management APIs (Admin)
-export const getUsers = (adminEmail, adminPassword) => {
-  return api.get(`/users/?admin_email=${adminEmail}&admin_password=${adminPassword}`);
-};
-export const addUser = (userData) => api.post('/users', userData);
-export const updateUser = (userId, userData) => api.put(`/users/${userId}`, userData);
-export const deleteUser = (userId, adminEmail, adminPassword) => {
-  return api.delete(`/users/${userId}?admin_email=${adminEmail}&admin_password=${adminPassword}`);
+  createMovie: async (payload) => handleResponse(await fetch(endpoints.movies.create, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })),
+  updateMovie: async (id, payload) => handleResponse(await fetch(endpoints.movies.update(id), { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })),
+  deleteMovie: async (id, admin_email, admin_password) => {
+    const url = new URL(endpoints.movies.delete(id));
+    if (admin_email) url.searchParams.set("admin_email", admin_email);
+    if (admin_password) url.searchParams.set("admin_password", admin_password);
+    return handleResponse(await fetch(url.toString(), { method: "DELETE" }));
+  },
+  getGenres: async () => handleResponse(await fetch(endpoints.genres.list)),
+  createGenre: async (payload) => handleResponse(await fetch(endpoints.genres.create, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })),
+  updateGenre: async (id, payload) => handleResponse(await fetch(endpoints.genres.update(id), { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })),
+  deleteGenre: async (id, admin_email, admin_password) => {
+    const url = new URL(endpoints.genres.delete(id));
+    if (admin_email) url.searchParams.set("admin_email", admin_email);
+    if (admin_password) url.searchParams.set("admin_password", admin_password);
+    return handleResponse(await fetch(url.toString(), { method: "DELETE" }));
+  },
+  getWatchlist: async (userId) => handleResponse(await fetch(endpoints.watchlist.get(userId))),
+  addToWatchlist: async ({ user_id, movie_id, seats_selected = 1 }) => handleResponse(await fetch(endpoints.watchlist.add, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id, movie_id, seats_selected }) })),
+  removeFromWatchlist: async (watchlistId) => handleResponse(await fetch(endpoints.watchlist.remove(watchlistId), { method: "DELETE" })),
+  createBooking: async ({ customer_id }) => handleResponse(await fetch(endpoints.bookings.create, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ customer_id }) })),
+  createPayment: async ({ booking_id, amount, method, status }) => handleResponse(await fetch(endpoints.payments.create, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ booking_id, amount, method, status }) })),
+  getReviews: async (movieId) => handleResponse(await fetch(endpoints.reviews.listForMovie(movieId))),
+  createReview: async ({ user_id, movie_id, rating, comment }) => handleResponse(await fetch(endpoints.reviews.create, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id, movie_id, rating, comment }) })),
+  listUsers: async ({ admin_email, admin_password }) => {
+    const url = new URL(endpoints.users.list);
+    if (admin_email) url.searchParams.set("admin_email", admin_email);
+    if (admin_password) url.searchParams.set("admin_password", admin_password);
+    return handleResponse(await fetch(url.toString()));
+  },
+  createUser: async (payload) => handleResponse(await fetch(endpoints.users.create, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })),
+  updateUser: async (id, payload) => handleResponse(await fetch(endpoints.users.update(id), { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })),
+  deleteUser: async (id, admin_email, admin_password) => {
+    const url = new URL(endpoints.users.delete(id));
+    if (admin_email) url.searchParams.set("admin_email", admin_email);
+    if (admin_password) url.searchParams.set("admin_password", admin_password);
+    return handleResponse(await fetch(url.toString(), { method: "DELETE" }));
+  },
 };
 
 export default api;
+
+
