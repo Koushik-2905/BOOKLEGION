@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CartItem from "../components/CartItem";
-import "../App.css"; // Import CSS
+import "../App.css";
+
 const API = "http://localhost:5000";
 
 export default function Cart() {
@@ -32,7 +33,7 @@ export default function Cart() {
 
   const checkout = async () => {
     if (items.length === 0) {
-      alert("Cart is empty");
+      alert("Watchlist is empty");
       return;
     }
 
@@ -45,7 +46,6 @@ export default function Cart() {
     });
     const data = await res.json();
     if (data.success) {
-      // Pass order ID, cart items, and total amount to Payment page
       nav("/payment", { state: { order_id: data.order_id, cart_items: items, total_amount: total } });
     } else {
       alert(data.message || "Checkout failed");
@@ -58,7 +58,7 @@ export default function Cart() {
     <div className="container page-container">
       <h2>Your Watchlist</h2>
 
-      {items.length === 0 && <div>Cart is empty</div>}
+      {items.length === 0 && <div>Watchlist is empty</div>}
 
       {items.map((it) => (
         <CartItem key={it.cart_id} item={it} onRemove={remove} />
@@ -68,10 +68,12 @@ export default function Cart() {
         <div className="cart-summary">
           <div className="cart-total">Total: ₹{total.toFixed(2)}</div>
           <button className="action-btn update-btn" onClick={checkout}>
-            Proceed to Checkout
+            Proceed to Payment
           </button>
         </div>
       )}
     </div>
   );
 }
+
+

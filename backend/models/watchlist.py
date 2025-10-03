@@ -3,10 +3,12 @@ from db import get_db
 
 watchlist_bp = Blueprint('watchlist', __name__)
 
+
 def dict_from_cursor(cursor):
     cols = [c[0] for c in cursor.description]
     rows = cursor.fetchall()
     return [dict(zip(cols, r)) for r in rows]
+
 
 @watchlist_bp.route('/<int:user_id>', methods=['GET'])
 def get_watchlist(user_id):
@@ -14,7 +16,7 @@ def get_watchlist(user_id):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "SELECT w.watchlist_id, w.movie_id, w.seats_selected, m.title, m.price "
+            "SELECT w.watchlist_id AS cart_id, w.movie_id, w.seats_selected AS quantity, m.title AS name, m.price "
             "FROM watchlist w JOIN movies m ON w.movie_id=m.movie_id WHERE w.user_id=%s",
             (user_id,)
         )
@@ -24,14 +26,16 @@ def get_watchlist(user_id):
         cursor.close()
         conn.close()
 
+
 @watchlist_bp.route('/', methods=['POST'])
 def add_to_watchlist():
-    data = request.get_json()
-    user_id = data.get('user_id')
-    movie_id = data.get('movie_id')
-    seats_selected = int(data.get('seats_selected', 1))
+    data = request.get_json() or {}
+    # Accept both old and new key names
+    user_id = data.get('user_id') or data.get('customer_id')
+    movie_id = data.get('movie_id') or data.get('product_id')
+    seats_selected = int(data.get('seats_selected') or data.get('quantity') or 1)
     if not (user_id and movie_id):
-        return jsonify({"success": False, "message": "user_id and movie_id required"}), 400
+        return jsonify({"success": False, "message": "user_id/customer_id and movie_id/product_id required"}), 400
 
     conn = get_db()
     cursor = conn.cursor()
@@ -51,6 +55,7 @@ def add_to_watchlist():
     finally:
         cursor.close()
         conn.close()
+
 
 @watchlist_bp.route('/<int:watchlist_id>', methods=['DELETE'])
 def remove_from_watchlist(watchlist_id):

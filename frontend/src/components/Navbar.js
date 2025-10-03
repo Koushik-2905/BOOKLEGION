@@ -1,7 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-import "../App.css"; // Import CSS
+import "../App.css";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -9,14 +8,15 @@ export default function Navbar() {
 
   const logout = () => {
     localStorage.removeItem("user");
-    navigate("/");
+    navigate("/login");
   };
 
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        {user && !user.is_admin && <Link to="/home" className="nav-link">Home</Link>}
-        {user && !user.is_admin && <Link to="/cart" className="nav-link">Cart</Link>}
+        <Link to="/" className="nav-link">Home</Link>
+        {user && !user.is_admin && <Link to="/watchlist" className="nav-link">Watchlist</Link>}
+        {user && <Link to="/my-bookings" className="nav-link">My Bookings</Link>}
         {user && user.is_admin && <Link to="/admin" className="nav-link">Admin</Link>}
       </div>
       <div className="navbar-right">
@@ -27,10 +27,14 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link to="/" className="nav-link">Login</Link> | <Link to="/signup" className="nav-link">Signup</Link>
+            <Link to="/login" className="nav-link">Login</Link>
+            {" "}|{" "}
+            <Link to="/signup" className="nav-link">Signup</Link>
           </>
         )}
       </div>
     </nav>
   );
 }
+
+

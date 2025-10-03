@@ -1,5 +1,5 @@
 import React from "react";
-import "../App.css"; // Import CSS
+import "../App.css";
 
 export default function CartItem({ item, onRemove }) {
   return (
@@ -7,7 +7,7 @@ export default function CartItem({ item, onRemove }) {
       <div className="cart-item-info">
         <h4>{item.name}</h4>
         <div>Price: ₹{item.price}</div>
-        <div>Quantity: {item.quantity}</div>
+        <div>Seats: {item.quantity}</div>
       </div>
       <button className="action-btn delete-btn" onClick={() => onRemove(item.cart_id)}>
         Remove
@@ -15,3 +15,5 @@ export default function CartItem({ item, onRemove }) {
     </div>
   );
 }
+
+
