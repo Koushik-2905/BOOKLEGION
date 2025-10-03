@@ -10,13 +10,16 @@ import ManageGenres from "./pages/admin/ManageGenres";
 import ManageMovies from "./pages/admin/ManageMovies";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
+import Checkout from "./pages/Checkout";
+import Payment from "./pages/Payment";
 
 export default function App() {
   return (
     <AuthProvider>
       <nav className="navbar">
         <Link to="/">Home</Link>
-        <Link to="/watchlist">Watchlist</Link>
+        <Link to="/cart">Cart</Link>
+        <Link to="/checkout">Checkout</Link>
         <span className="spacer" />
         <Link to="/login">Login</Link>
         <Link to="/signup">Signup</Link>
@@ -27,6 +30,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/watchlist" element={<ProtectedRoute><Watchlist /></ProtectedRoute>} />
+        <Route path="/cart" element={<ProtectedRoute><Watchlist /></ProtectedRoute>} />
+        <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+        <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/admin/users" element={<ProtectedRoute><ManageUsers /></ProtectedRoute>} />

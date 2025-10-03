@@ -27,6 +27,14 @@ export const api = {
     if (admin_password) url.searchParams.set("admin_password", admin_password);
     return handleResponse(await fetch(url.toString(), { method: "DELETE" }));
   },
+  purgeMoviesToSix: async ({ admin_email, admin_password }) => {
+    const res = await fetch(`${endpoints.movies.create}/purge`.replace('/movies', '/movies/purge'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ admin_email, admin_password })
+    });
+    return handleResponse(res);
+  },
   getGenres: async () => handleResponse(await fetch(endpoints.genres.list)),
   createGenre: async (payload) => handleResponse(await fetch(endpoints.genres.create, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })),
   updateGenre: async (id, payload) => handleResponse(await fetch(endpoints.genres.update(id), { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })),

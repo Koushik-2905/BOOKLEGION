@@ -103,8 +103,4 @@ INSERT INTO movies (movie_id, genre_id, title, price, available_seats, descripti
 (3, 2, 'Laugh Out Loud', 199.00, 60, 'Comedy of the year', 120, '2025-10-06 15:00:00'),
 (4, 2, 'The Funny Bone', 199.00, 55, 'Stand-up comedy special', 110, '2025-10-06 19:00:00'),
 (5, 3, 'The Last Dance', 249.00, 40, 'Emotional drama about dreams', 140, '2025-10-07 17:00:00'),
-(6, 3, 'Broken Wings', 249.00, 35, 'A story of resilience', 135, '2025-10-07 20:00:00'),
-(7, 4, 'Nightmare Street', 279.00, 50, 'Horror that will keep you awake', 125, '2025-10-08 22:00:00'),
-(8, 4, 'The Haunting', 279.00, 48, 'Supernatural thriller', 130, '2025-10-08 23:30:00'),
-(9, 5, 'Interstellar Journey', 399.00, 30, 'Epic space adventure', 180, '2025-10-09 18:30:00'),
-(10, 5, 'AI Revolution', 399.00, 32, 'Future of humanity', 155, '2025-10-09 21:30:00');
+(6, 3, 'Broken Wings', 249.00, 35, 'A story of resilience', 135, '2025-10-07 20:00:00');

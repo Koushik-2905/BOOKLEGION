@@ -138,3 +138,60 @@ def delete_movie(movie_id):
     finally:
         cursor.close()
         conn.close()
+
+
+@movies_bp.route('/purge', methods=['POST'])
+def purge_movies():
+    data = request.get_json() or {}
+    admin_email = data.get("admin_email")
+    admin_password = data.get("admin_password")
+    if not (admin_email and admin_password):
+        return jsonify({"success": False, "message": "Admin credentials required"}), 401
+
+    allowed_titles = [
+        'Fast & Furious X',
+        'Mission Impossible 8',
+        'Laugh Out Loud',
+        'The Funny Bone',
+        'The Last Dance',
+        'Broken Wings',
+    ]
+
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT is_admin FROM users WHERE email=%s AND password=%s", (admin_email, admin_password))
+        r = cursor.fetchone()
+        if not r or r[0] != 1:
+            return jsonify({"success": False, "message": "Not authorized"}), 403
+
+        # Delete dependent entities first for movies to be removed
+        format_strings = ",".join(["%s"] * len(allowed_titles))
+        # Delete booking_items referencing movies to be deleted
+        cursor.execute(
+            f"DELETE FROM booking_items WHERE movie_id IN (SELECT movie_id FROM movies WHERE title NOT IN ({format_strings}))",
+            allowed_titles,
+        )
+        # Delete watchlist entries
+        cursor.execute(
+            f"DELETE FROM watchlist WHERE movie_id IN (SELECT movie_id FROM movies WHERE title NOT IN ({format_strings}))",
+            allowed_titles,
+        )
+        # Delete reviews (ON DELETE CASCADE on movies covers it; explicit ok)
+        cursor.execute(
+            f"DELETE FROM reviews WHERE movie_id IN (SELECT movie_id FROM movies WHERE title NOT IN ({format_strings}))",
+            allowed_titles,
+        )
+        # Finally delete movies not in allowed list
+        cursor.execute(
+            f"DELETE FROM movies WHERE title NOT IN ({format_strings})",
+            allowed_titles,
+        )
+        conn.commit()
+        return jsonify({"success": True, "message": "Movies purged to allowed set"})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()

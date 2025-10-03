@@ -29,10 +29,10 @@ export default function Watchlist() {
 
   return (
     <div className="container">
-      <h2>My Watchlist</h2>
+      <h2>My Cart</h2>
       {message && (<div className={`alert ${message.type === "success" ? "alert-success" : "alert-error"}`}>{message.text}</div>)}
       {!user ? (
-        <div>Please login to view your watchlist.</div>
+        <div>Please login to view your cart.</div>
       ) : (
         <table className="table">
           <thead>
